@@ -199,7 +199,10 @@ func (s *Server) RemapAddresses(m *dns.Msg) error {
 
 		a.A = ip.To4()
 		if dur != 0 {
-			a.Hdr.Ttl = uint32(dur / time.Second)
+			newTTL := uint32(dur / time.Second)
+			if newTTL < a.Hdr.Ttl {
+				a.Hdr.Ttl = newTTL
+			}
 		}
 	}
 
