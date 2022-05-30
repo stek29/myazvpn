@@ -1,0 +1,10 @@
+[Unit]
+Description=antizapret lists update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment=RESOLVE_NXDOMAIN=yes
+WorkingDirectory=/opt/az/antizapret-pac-generator-light
+ExecStart=/opt/az/update.sh

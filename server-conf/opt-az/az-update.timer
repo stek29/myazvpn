@@ -1,0 +1,9 @@
+[Unit]
+Description=run antizapret-vpn update every 6h
+
+[Timer]
+OnBootSec=15m
+OnUnitActiveSec=6h
+
+[Install]
+WantedBy=timers.target
