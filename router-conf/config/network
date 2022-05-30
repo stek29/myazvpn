@@ -1,0 +1,15 @@
+# /etc/config/network
+
+config interface 'wg0'
+	option proto 'wireguard'
+	option private_key '#ROUTER PRIVKEY#'
+	option mtu '1440'
+	option listen_port '#ROUTER PORT#'
+	list addresses '10.221.0.2/24'
+
+config wireguard_wg0 'wgserver'
+	option public_key '#SERVER PUBKEY#'
+	option endpoint_host '#SERVER ADDR#'
+	option endpoint_port '#SERVER PORT#'
+	option route_allowed_ips '0'
+	list allowed_ips '0.0.0.0/0'

@@ -1,0 +1,9 @@
+table inet filter {
+    chain input {
+        # chain def
+
+        udp dport #ROUTER PORT# \
+            counter accept \
+            comment accept wg
+    }
+}
