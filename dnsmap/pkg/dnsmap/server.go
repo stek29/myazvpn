@@ -21,31 +21,52 @@ type Server struct {
 	upstream string
 
 	mapper IPMapper
+
+	logQ bool
+	logA bool
+}
+
+// ServerConfig is the configuration for server
+type ServerConfig struct {
+	// Addr is the binding address
+	Addr string
+	// Listen on UDP
+	UDP bool
+	// Listen on TCP
+	TCP bool
+	// upstreamNet is dns.Client{}.Net to use when forwarding to upstream
+	UpstreamNet string
+	// upstream is the address of upstream to forward requests to
+	Upstream string
+	// mapper is the IPv4 remapper to use
+	Mapper IPMapper
+
+	// LogQuery enables request logging
+	LogQuery bool
+	// LogAnswer enables response logging
+	LogAnswer bool
 }
 
 // NewServer creates a new Server
-// addr is the binding address
-// udp - listen on udp
-// tcp - listen on tcp
-// upstreamNet is dns.Client{}.Net to use when forwarding to upstream
-// upstream is the upstream to forward requests to
-func NewServer(addr string, udp, tcp bool, upstreamNet, upstream string, mapper IPMapper) *Server {
+func NewServer(conf *ServerConfig) *Server {
 	s := &Server{
 		mux:      dns.NewServeMux(),
-		upstream: upstream,
+		upstream: conf.Upstream,
 		cli: &dns.Client{
-			Net: upstreamNet,
+			Net: conf.UpstreamNet,
 		},
-		mapper: mapper,
+		mapper: conf.Mapper,
+		logQ:   conf.LogQuery,
+		logA:   conf.LogAnswer,
 	}
 
 	s.mux.Handle(".", s)
 
-	if tcp {
-		s.tcp = s.makeServer(addr, "tcp")
+	if conf.TCP {
+		s.tcp = s.makeServer(conf.Addr, "tcp")
 	}
-	if udp {
-		s.udp = s.makeServer(addr, "udp")
+	if conf.UDP {
+		s.udp = s.makeServer(conf.Addr, "udp")
 	}
 
 	return s
@@ -97,7 +118,10 @@ func (s *Server) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	q := r.Question[0]
 	qname := q.Name
 	qtype := dns.Type(q.Qtype)
-	log.Printf("inf: got request %v %v\n", qtype, qname)
+
+	if s.logQ {
+		log.Printf("inf: got request %v %v\n", qtype, qname)
+	}
 
 	// Filter out IXFR/AXFR queries
 	if q.Qtype == dns.TypeIXFR || q.Qtype == dns.TypeAXFR {
@@ -118,7 +142,9 @@ func (s *Server) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 
 	// Return empty responses for AAAA queries
 	if q.Qtype == dns.TypeAAAA {
-		log.Printf("inf: returning empty response for AAAA req: %v\n", qname)
+		if s.logA {
+			log.Printf("inf: returning empty response for AAAA req: %v\n", qname)
+		}
 		m := new(dns.Msg)
 		m.SetReply(r)
 		w.WriteMsg(m)
@@ -136,11 +162,14 @@ func (s *Server) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	if q.Qtype == dns.TypeA {
-		log.Printf("inf: remapping addresses for %v %v\n", qtype, qname)
+		if s.logA {
+			log.Printf("inf: remapping addresses for %v %v\n", qtype, qname)
+		}
+
 		err := s.RemapAddresses(ret)
 
 		if err != nil {
-			log.Printf("inf: remap failed for %v %v: %v\n", qtype, qname, err)
+			log.Printf("err: remap failed for %v %v: %v\n", qtype, qname, err)
 
 			m := new(dns.Msg)
 			m.SetRcode(r, dns.RcodeServerFailure)
@@ -149,7 +178,10 @@ func (s *Server) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	}
 
-	log.Printf("inf: got response for %v %v: %v\n", qtype, qname, ret)
+	if s.logA {
+		log.Printf("inf: got response for %v %v: %v\n", qtype, qname, ret)
+	}
+
 	w.WriteMsg(ret)
 }
 

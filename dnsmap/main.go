@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -13,20 +14,6 @@ import (
 
 	"github.com/stek29/myazvpn/dnsmap/pkg/dnsmap"
 	"github.com/stek29/myazvpn/dnsmap/pkg/nftmap"
-)
-
-var (
-	upstream    = flag.String("upstream", "8.8.8.8:53", "addr:port of upstream server")
-	upstreamNet = flag.String("upstream-net", "tcp", "net proto of upstream server")
-
-	bind = flag.String("bind", "127.0.0.4:53", "addr:port to bind to")
-	udp  = flag.Bool("udp", true, "listen on udp")
-	tcp  = flag.Bool("tcp", true, "listen on tcp")
-
-	remapRange = flag.String("remap-range", "10.222.0.0/20", "ip range to remap IPs into in CIDR format")
-	table      = flag.String("nft-table", "nat", "name of nftables table")
-	mapname    = flag.String("nft-map", "dnsmap", "name of nftables map")
-	nftclear   = flag.Bool("nft-clear", false, "clear nftables map on strart")
 )
 
 func waitForSigShutdown(srv *dnsmap.Server) {
@@ -54,35 +41,91 @@ func newDNSMapper(remapRange string, inner nftmap.NFTMapper) (*nftmap.DNSMapper,
 	return mapper, nil
 }
 
-func main() {
-	flag.Usage = func() {
-		flag.PrintDefaults()
-	}
-	flag.Parse()
+func usage() {
+	flag.PrintDefaults()
 
-	innerMapper, err := nftmap.NewNFTMapper(*table, *mapname)
+	fmt.Println("default config: ")
+	data, err := json.MarshalIndent(&defaultConf, "", "  ")
 	if err != nil {
-		log.Fatalf("cant create nftables mapper for map %v in table %v: %v\n", *table, *mapname, err)
+		fmt.Printf("cant get default config: %v\n", err)
+		return
+	}
+
+	fmt.Println(string(data))
+}
+
+func readConfig(config *confRoot, path string) error {
+	fd, err := os.Open(path)
+	if err != nil {
+		return fmt.Errorf("cant open config: %w", err)
+	}
+	defer fd.Close()
+
+	err = json.NewDecoder(fd).Decode(config)
+	if err != nil {
+		return fmt.Errorf("cant parse config: %w", err)
+	}
+
+	return nil
+}
+
+func (c *confRoot) run() {
+	nftTable := c.Remap.NFT.Table
+	nftMap := c.Remap.NFT.Map
+
+	innerMapper, err := nftmap.NewNFTMapper(nftTable, nftMap)
+	if err != nil {
+		log.Fatalf("cant create nftables mapper for map %v in table %v: %v\n", nftMap, nftTable, err)
 	}
 	defer innerMapper.Close()
 
-	if *nftclear {
+	if c.Remap.NFT.Clear {
 		if err = innerMapper.Clear(); err != nil {
 			log.Fatalf("cant clear nftables map: %v\n", err)
 		}
+		log.Printf("inf: cleared current nftables map %v in table %v\n", nftMap, nftTable)
 	}
 
-	mapper, err := newDNSMapper(*remapRange, innerMapper)
+	mapper, err := newDNSMapper(c.Remap.Range, innerMapper)
 	if err != nil {
-		log.Fatalf("cant create mapper for range `%v`: %v\n", *remapRange, err)
+		log.Fatalf("cant create mapper for range `%v`: %v\n", c.Remap.Range, err)
 	}
 
-	server := dnsmap.NewServer(*bind, *udp, *tcp, *upstreamNet, *upstream, mapper)
+	server := dnsmap.NewServer(&dnsmap.ServerConfig{
+		Addr: c.Listen.Addr,
+		UDP:  c.Listen.UDP,
+		TCP:  c.Listen.TCP,
+
+		UpstreamNet: c.Upstream.Net,
+		Upstream:    c.Upstream.Addr,
+
+		Mapper: mapper,
+
+		LogQuery:  c.Log.Query,
+		LogAnswer: c.Log.Answer,
+	})
 
 	go waitForSigShutdown(server)
 	if err := server.Start(); err != nil {
 		log.Printf("err: server error: %v\n", err)
 	}
+}
 
+func main() {
+	configPath := flag.String("config", "", "path to config.json")
+
+	flag.Usage = usage
+	flag.Parse()
+
+	config := defaultConf
+	if *configPath == "" {
+		log.Println("warn: no config is provided, running with defaults")
+	} else {
+		if err := readConfig(&config, *configPath); err != nil {
+			log.Fatalf("cant read config file `%v`: %v\n", *configPath, err)
+		}
+	}
+
+	config.run()
 	log.Println("inf: goodbye")
 }
