@@ -55,9 +55,8 @@ func newNFTMapper(table, name string) (NFTMapper, error) {
 		return nil, fmt.Errorf("conn.AddSet: %w", err)
 	}
 
-	err = m.c.Flush()
-	if err != nil {
-		return nil, fmt.Errorf("conn.Flush after conn.AddSet: %w", err)
+	if err = m.flush("new after conn.AddSet"); err != nil {
+		return nil, err
 	}
 
 	return &m, nil
@@ -65,11 +64,7 @@ func newNFTMapper(table, name string) (NFTMapper, error) {
 
 func (m *nftMapper) Clear() error {
 	m.c.FlushSet(m.set)
-	err := m.c.Flush()
-	if err != nil {
-		return fmt.Errorf("conn.Flush after conn.FlushSet: %w", err)
-	}
-	return nil
+	return m.flush("Clear after FlushSet")
 }
 
 func (m *nftMapper) List() ([]NFTMapElem, error) {
@@ -90,7 +85,7 @@ func (m *nftMapper) Add(elems ...NFTMapElem) error {
 	if err != nil {
 		return fmt.Errorf("conn.SetAddElements: %w", err)
 	}
-	return nil
+	return m.flush("Add after SetAddElements")
 }
 
 func (m *nftMapper) Remove(k uint32) error {
@@ -98,15 +93,22 @@ func (m *nftMapper) Remove(k uint32) error {
 }
 
 func (m *nftMapper) Close() error {
-	err := m.c.Flush()
-	if err != nil {
-		return fmt.Errorf("conn.Flush: %w", err)
+	if err := m.flush("Close"); err != nil {
+		return err
 	}
 
-	err = m.c.CloseLasting()
+	err := m.c.CloseLasting()
 	if err != nil {
 		return fmt.Errorf("conn.CloseLasting: %w", err)
 	}
 
+	return nil
+}
+
+func (m *nftMapper) flush(name string) error {
+	err := m.c.Flush()
+	if err != nil {
+		return fmt.Errorf("conn.Flush at %s: %w", name, err)
+	}
 	return nil
 }
