@@ -73,8 +73,8 @@ func (s *Server) Start() error {
 
 // Shutdown shuts down both servers
 func (s *Server) Shutdown(ctx context.Context) {
-	s.udp.ShutdownContext(ctx)
-	s.tcp.ShutdownContext(ctx)
+	_ = s.udp.ShutdownContext(ctx)
+	_ = s.tcp.ShutdownContext(ctx)
 }
 
 func (s *Server) makeServer(addr, net string) *dns.Server {

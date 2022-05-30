@@ -30,7 +30,7 @@ var (
 )
 
 func waitForSigShutdown(srv *dnsmap.Server) {
-	sig := make(chan os.Signal)
+	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	s := <-sig
 	log.Printf("inf: signal (%s) received, stopping\n", s)
