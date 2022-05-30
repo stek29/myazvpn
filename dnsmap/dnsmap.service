@@ -1,0 +1,18 @@
+[Unit]
+Description=DNSMAP Mapping Resolver
+Wants=network-online.target
+After=network-online.target nftables.service
+Before=kresd@1.service
+
+[Service]
+Type=simple
+# Environment="GOMAXPROCS=2"
+Environment="DNSMAP_CONFIG_PATH=/etc/dnsmap.json"
+AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_NET_ADMIN CAP_NET_RAW
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_NET_ADMIN CAP_NET_RAW
+ExecStart=/usr/sbin/dnsmap --config $DNSMAP_CONFIG_PATH
+User=nobody
+Group=nogroup
+
+[Install]
+WantedBy=multi-user.target
