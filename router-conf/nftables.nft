@@ -1,9 +1,10 @@
 table inet filter {
-    chain input {
-        # chain def
-
-        udp dport #ROUTER PORT# \
-            counter accept \
-            comment accept wg
-    }
+  chain forward {
+    type filter hook forward priority filter;
+    iif "wg0" \
+      tcp dport 853 \
+      oif "eth1" \
+      counter accept \
+      comment "accept from vpn server to DoT"
+  }
 }
