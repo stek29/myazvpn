@@ -1,0 +1,9 @@
+---
+- name: enable service and restart if needed
+  ansible.builtin.systemd_service:
+    name: "dnsmap"
+    daemon_reload: "{{ _dnsmap_systemd_unit.changed }}"
+    enabled: yes
+    state: "{{ restart | ternary('restarted', 'started') }}"
+  vars:
+    restart: "{{ _dnsmap_config.changed or _dnsmap_binary.changed }}"

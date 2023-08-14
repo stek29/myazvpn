@@ -1,0 +1,12 @@
+---
+- name: render custom hosts - include
+  ansible.builtin.template:
+    src: "templates/include-hosts-custom.txt.j2"
+    dest: "{{ optaz_install_path }}/{{ optaz_git_dir }}/config/include-hosts-custom.txt"
+  register: _optaz_custom_hosts_include_tpl
+
+- name: trigger az-update script
+  ansible.builtin.systemd_service:
+    name: "az-update.service"
+    state: "restarted"
+  when: _optaz_custom_hosts_include_tpl.changed

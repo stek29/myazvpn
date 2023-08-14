@@ -1,0 +1,7 @@
+---
+- import_tasks: install.yml
+  tags: [opt-az, opt-az/install]
+- import_tasks: az-update.yml
+  tags: [opt-az, opt-az/az-update]
+- import_tasks: custom-hosts.yml
+  tags: [opt-az, opt-az/custom-hosts]

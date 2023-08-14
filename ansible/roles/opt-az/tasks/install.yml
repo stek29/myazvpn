@@ -1,0 +1,36 @@
+---
+- name: install required packages
+  ansible.builtin.package:
+    name:
+      - curl
+      - gawk
+      - idn
+      - python3-dnspython
+      - sipcalc
+      - socat
+    state: latest
+
+- name: create directory {{ optaz_install_path }}
+  ansible.builtin.file:
+    path: "{{ optaz_install_path }}"
+    state: directory
+
+- name: stash git changes
+  ansible.builtin.command:
+    cmd: "git stash"
+    chdir: "{{ optaz_install_path }}/{{ optaz_git_dir }}"
+
+- name: clone pac-generator-lite
+  ansible.builtin.git:
+    repo: "{{ optaz_git_remote }}"
+    dest: "{{ optaz_install_path }}/{{ optaz_git_dir }}"
+  when: not ansible_check_mode
+
+- name: unstash git changes
+  ansible.builtin.command:
+    cmd: "git stash pop"
+    chdir: "{{ optaz_install_path }}/{{ optaz_git_dir }}"
+  register: _optaz_unstash_output
+  failed_when:
+    - _optaz_unstash_output.failed
+    - not 'No stash entries found' in _optaz_unstash_output.stderr

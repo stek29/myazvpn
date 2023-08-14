@@ -1,0 +1,22 @@
+---
+- name: install az-update script
+  ansible.builtin.template:
+    src: "templates/update.sh.j2"
+    dest: "{{ optaz_install_path }}/{{ optaz_update_script }}"
+    mode: "0755"
+
+- name: install az-update systemd units
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+  register: _optaz_systemd_units
+  with_items:
+    - az-update.service
+    - az-update.timer
+
+- name: ensure az-update timer state
+  ansible.builtin.systemd_service:
+    name: "az-update.timer"
+    daemon_reload: "{{ _optaz_systemd_units.changed }}"
+    enabled: yes
+    state: "started"

@@ -1,0 +1,10 @@
+---
+- import_tasks: wireguard.yml
+  tags: [network, network/wireguard]
+- import_tasks: nftables.yml
+  tags: [network, network/nftables]
+- name: flush handlers
+  meta: flush_handlers
+  tags: [network, network/nftables, network/wireguard]
+- import_tasks: bird.yml
+  tags: [network, network/bird]

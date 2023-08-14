@@ -1,0 +1,20 @@
+---
+net_wg_ifname: "wg0"
+net_wg_private_key_path: "/etc/wireguard/az-private.key"
+
+net_wg_address_range: "10.221.0.1/24"
+net_wg_listen_port: "50000"
+# see https://lists.zx2c4.com/pipermail/wireguard/2017-December/002201.html
+net_wg_mtu: 1440
+
+net_wg_peers: []
+
+net_nft_oifname: "eth0"
+net_nft_dnsmap_range: "10.222.0.0/20"
+net_nft_dns_redirect_to: "10.221.0.1"
+
+net_bird_router_id: "{{ net_wg_address_range | ansible.utils.nthhost(1) }}"
+net_bird_ospf_txlen: "{{ net_wg_mtu - 40 }}"
+net_bird_neighbor_ip: "{{ net_wg_address_range | ansible.utils.nthhost(2) }}"
+net_bird_extra_routes:
+  - '1.1.1.1/32'

@@ -1,0 +1,48 @@
+-- Network interface configuration
+net.listen({{ knot_listen_addr | to_json }}, 53, { kind = 'dns', freebind = true })
+
+-- Load useful modules
+modules = {
+  'hints > iterate',  -- Allow loading /etc/hosts or custom root hints
+  'stats',            -- Track internal statistics
+  'predict',          -- Prefetch expiring/frequent records
+}
+
+-- Cache size
+cache.size = {{ knot_cache_size }}
+
+-- minimum TTL
+cache.min_ttl({{ knot_min_ttl }})
+
+-- set default (empty) value
+blocked_hosts = {}
+
+-- load AZ aliases
+dofile({{ knot_aliases_path | to_json }})
+
+-- forward blocked hosts to dnsmap resolver
+policy.add(
+    policy.suffix(
+        policy.STUB({
+          {{ knot_upstream_dnsmap | to_json }}
+        }),
+        policy.todnames(blocked_hosts)))
+
+-- block apple private dns / apple private relay
+-- since it evades this whole scheme
+policy.add(
+    policy.domains(
+        policy.DROP,
+        policy.todnames({
+            'mask.icloud.com.',
+            'mask-h2.icloud.com.',
+            'mask-canary.icloud.com.',
+            'mask.apple-dns.net.',
+        })))
+
+-- TLS_FORWARD to Google Public DNS and Cloudflare DNS by default
+policy.add(
+  policy.all(
+    policy.TLS_FORWARD({
+        {'8.8.8.8', hostname='dns.google'},
+      })))

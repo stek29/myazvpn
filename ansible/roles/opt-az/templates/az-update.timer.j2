@@ -1,0 +1,9 @@
+[Unit]
+Description=run antizapret-vpn update every 6h
+
+[Timer]
+OnBootSec={{ optaz_update_timer_onboot }}
+OnUnitActiveSec={{ optaz_update_timer_onunitactive }}
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,5 @@
+---
+- name: install knot-resolver package
+  ansible.builtin.package:
+    name: knot-resolver
+    state: latest

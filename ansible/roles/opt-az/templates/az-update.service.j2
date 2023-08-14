@@ -1,0 +1,10 @@
+[Unit]
+Description=antizapret lists update
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+Environment={{ optaz_update_envs.items() | map('join', '=') | join(' ') }}
+WorkingDirectory={{ optaz_install_path }}/{{ optaz_git_dir }}
+ExecStart={{ optaz_install_path }}/{{ optaz_update_script }}

@@ -1,0 +1,9 @@
+---
+knot_listen_addr: "10.221.0.1"
+knot_cache_size: "100 * MB"
+# 2 minutes
+knot_min_ttl: "120"
+
+knot_aliases_path: "/etc/knot-resolver/az-aliases.lua"
+
+knot_upstream_dnsmap: "127.0.0.4"

@@ -1,0 +1,17 @@
+---
+- name: install knot-resolver config
+  ansible.builtin.template:
+    src: 'templates/knot-resolver.conf.j2'
+    dest: '/etc/knot-resolver/kresd.conf'
+  register: _knot_resolver_config
+
+- name: check if default az-aliases.lua file exists
+  ansible.builtin.stat: 
+    path: "{{ knot_aliases_path }}"
+  register: _knot_az_aliases_stat
+
+- name: create default az-aliases.lua file if missing
+  ansible.builtin.copy:
+    src: "files/az-aliases.lua"
+    dest: "{{ knot_aliases_path }}"
+  when: not _knot_az_aliases_stat.stat.exists

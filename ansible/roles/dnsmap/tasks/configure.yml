@@ -1,0 +1,6 @@
+---
+- name: install dnsmap config
+  ansible.builtin.template:
+    src: 'templates/dnsmap.json.j2'
+    dest: '/etc/dnsmap.json'
+  register: _dnsmap_config

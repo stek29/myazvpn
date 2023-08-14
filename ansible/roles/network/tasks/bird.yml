@@ -1,0 +1,32 @@
+---
+- name: install bird
+  ansible.builtin.package:
+    name: bird2
+    state: latest
+
+- name: generate bird config
+  ansible.builtin.template:
+    src: "templates/{{ item }}.j2"
+    dest: "/etc/bird/{{ item }}"
+  loop:
+    - bird_manual_routes.conf
+    - bird.conf
+  register: _bird_config
+
+- name: create az_routes.conf if not present
+  ansible.builtin.command:
+    cmd: "touch {{ file_path }}"
+    creates: "{{ file_path }}"
+  vars:
+    file_path: /etc/bird/az_routes.conf
+
+# TODO: run bird check before restarting to check config
+# TODO: reload instead of restart
+
+- name: enable bird service and restart if needed
+  ansible.builtin.systemd_service:
+    name: "bird"
+    enabled: yes
+    state: "{{ restart | ternary('restarted', 'started') }}"
+  vars:
+    restart: "{{ _bird_config.changed }}"

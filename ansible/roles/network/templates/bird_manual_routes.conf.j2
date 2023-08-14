@@ -1,0 +1,4 @@
+route {{ net_nft_dnsmap_range }} recursive 0.0.0.0;
+{% for route in ( net_bird_extra_routes | sort ) %}
+route {{ route }} recursive 0.0.0.0;
+{% endfor %}

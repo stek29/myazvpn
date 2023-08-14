@@ -1,0 +1,43 @@
+# vim: set expandtab ts=2 sw=2 ai
+
+log syslog all;
+
+router id {{ net_bird_router_id }};
+
+protocol device {
+}
+
+protocol kernel {
+    learn;
+    ipv4 {
+        import where net = 0.0.0.0/0;
+        export none;
+    };
+}
+
+protocol static push_routes {
+    ipv4;
+
+    include "/etc/bird/bird_manual_routes.conf";
+    include "/etc/bird/az_routes.conf";
+}
+
+protocol ospf {
+    ipv4 {
+        import none;
+        export where proto = "push_routes";
+    };
+
+    area 0 {
+        interface "{{ net_wg_ifname }}" {
+            # needs to fit in wg0
+            tx length {{ net_bird_ospf_txlen }};
+            type ptmp;
+            cost 20;
+            hello 5;
+            neighbors {
+                {{ net_bird_neighbor_ip }};
+            };
+        };
+    };
+}

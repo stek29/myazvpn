@@ -1,0 +1,11 @@
+[Interface]
+Address = {{ net_wg_address_range }}
+ListenPort = {{ net_wg_listen_port }}
+MTU = {{ net_wg_mtu }}
+PostUp = wg set %i private-key {{ net_wg_private_key_path }}
+
+{% for peer in net_wg_peers %}
+[Peer]
+PublicKey = {{ peer.public_key }}
+AllowedIPs = {{ net_wg_address_range | ansible.utils.nthhost(loop.index+1) }}/32,{{ peer.allowed_ips | sort | join(",") }}
+{% endfor %}

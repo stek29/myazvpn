@@ -1,0 +1,20 @@
+---
+- name: install systemd service unit
+  ansible.builtin.copy:
+    src: "files/dnsmap.service"
+    dest: "/etc/systemd/system/dnsmap.service"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  register: _dnsmap_systemd_unit
+
+# make it by running at dnsmap source directory:
+# make GOOS=linux GOARCH=amd64
+- name: install dnsmap binary
+  ansible.builtin.copy:
+    src: "files/dnsmap-linux-amd64"
+    dest: "/usr/sbin/dnsmap"
+    mode: "0755"
+    owner: "root"
+    group: "root"
+  register: _dnsmap_binary

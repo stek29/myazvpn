@@ -1,0 +1,15 @@
+---
+dnsmap_log_query: false
+dnsmap_log_answer: false
+
+dnsmap_upstream_address: "8.8.4.4:53"
+dnsmap_upstream_net: "tcp"
+
+dnsmap_listen_address: "127.0.0.4:53"
+dnsmap_listen_tcp: true
+dnsmap_listen_udp: true
+
+dnsmap_remap_range: "10.222.0.0/20"
+dnsmap_remap_nft_table: "nat"
+dnsmap_remap_nft_map: "dnsmap"
+dnsmap_remap_nft_clear: false

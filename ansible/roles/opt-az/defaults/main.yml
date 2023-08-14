@@ -1,0 +1,16 @@
+---
+optaz_install_path: '/opt/az'
+optaz_git_remote: 'https://bitbucket.org/anticensority/antizapret-pac-generator-light.git'
+optaz_git_dir: 'antizapret-pac-generator-light'
+
+optaz_update_script: 'update.sh'
+optaz_update_envs:
+  RESOLVE_NXDOMAIN: 'yes'
+
+optaz_knot_aliases_path: '/etc/knot-resolver/az-aliases.lua'
+optaz_bird_routes_path: '/etc/bird/az_routes.conf'
+
+optaz_update_timer_onboot: '15m'
+optaz_update_timer_onunitactive: '6h'
+
+optaz_custom_hosts_include: []

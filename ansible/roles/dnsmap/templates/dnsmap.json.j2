@@ -1,0 +1,23 @@
+{
+  "log": {
+    "query": {{ dnsmap_log_query | to_json }},
+    "answer": {{ dnsmap_log_answer | to_json }}
+  },
+  "upstream": {
+    "address": {{ dnsmap_upstream_address | to_json }},
+    "net": {{ dnsmap_upstream_net | to_json }}
+  },
+  "listen": {
+    "address": {{ dnsmap_listen_address | to_json }},
+    "udp": {{ dnsmap_listen_tcp | to_json }},
+    "tcp": {{ dnsmap_listen_udp | to_json }}
+  },
+  "remap": {
+    "range": {{ dnsmap_remap_range | to_json }},
+    "nftables": {
+      "table": {{ dnsmap_remap_nft_table | to_json }},
+      "map": {{ dnsmap_remap_nft_map | to_json }},
+      "clear": {{ dnsmap_remap_nft_clear | to_json }}
+    }
+  }
+}

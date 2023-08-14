@@ -1,0 +1,8 @@
+---
+- name: enable service and restart if needed
+  ansible.builtin.systemd_service:
+    name: "kresd@1"
+    enabled: yes
+    state: "{{ restart | ternary('restarted', 'started') }}"
+  vars:
+    restart: "{{ _knot_resolver_config.changed }}"

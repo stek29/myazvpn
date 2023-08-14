@@ -1,0 +1,9 @@
+---
+- name: setup server
+  hosts: servers
+  roles:
+    - base
+    - network
+    - knot
+    - dnsmap
+    - opt-az

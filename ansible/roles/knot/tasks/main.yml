@@ -1,0 +1,7 @@
+---
+- import_tasks: install.yml
+  tags: [knot, knot/install]
+- import_tasks: configure.yml
+  tags: [knot, knot/configure]
+- import_tasks: service.yml
+  tags: [knot, knot/service]

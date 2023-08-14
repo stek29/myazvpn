@@ -1,0 +1,14 @@
+---
+- name: copy sysctls file
+  ansible.builtin.copy:
+    src: "files/sysctl.conf"
+    dest: "/etc/sysctl.d/az-sysctl.conf"
+    mode: "0644"
+    owner: root
+    group: root
+  register: _base_sysctl_conf
+
+- name: reload sysctl file
+  ansible.builtin.command:
+    cmd: sysctl -p --system
+  when: _base_sysctl_conf.changed

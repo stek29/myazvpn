@@ -1,0 +1,3 @@
+---
+- import_tasks: sysctl.yml
+  tags: [base, base/sysctl]

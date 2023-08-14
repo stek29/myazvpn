@@ -1,0 +1,24 @@
+---
+- name: install wireguard
+  ansible.builtin.package:
+    name: wireguard
+    state: latest
+
+- name: ensure wg private key
+  ansible.builtin.shell:
+    cmd: |-
+      umask 177;
+      wg genkey > {{ net_wg_private_key_path }}
+    creates: "{{ net_wg_private_key_path }}"
+
+- name: generate wg config
+  ansible.builtin.template:
+    src: templates/wg.conf.j2
+    dest: "/etc/wireguard/{{ net_wg_ifname }}.conf"
+    mode: "0600"
+  notify: restart wg-quick
+
+- name: enable wg-quick service
+  ansible.builtin.systemd_service:
+    name: "wg-quick@{{ net_wg_ifname }}"
+    enabled: yes

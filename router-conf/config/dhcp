@@ -1,2 +1,4 @@
 config dnsmasq
     list server '1.1.1.1'
+    option noresolv '1'
+    option rebind_protection '0'
