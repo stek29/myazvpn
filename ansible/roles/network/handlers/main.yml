@@ -1,8 +1,14 @@
 ---
+- name: check and restart nftables
+  ansible.builtin.command:
+    cmd: nft -c -f /etc/nftables.conf
+  notify: restart nftables
+
 - name: restart nftables
   ansible.builtin.systemd_service:
     name: nftables
     state: restarted
+    enabled: yes
 
 - name: restart wg-quick
   ansible.builtin.systemd_service:
