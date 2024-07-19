@@ -115,6 +115,15 @@ table ip nat {
       dnat to $DNS_REDIRECT_TO \
       comment "steal dns to local server"
 
+{% if net_nft_ntp_redirect_enabled %}
+    iif $WGDEV \
+      meta l4proto udp \
+      th dport 123 \
+      counter \
+      dnat to {{ net_nft_ntp_redirect_to }} \
+      comment "steal ntp to custom server"
+{% endif %}
+
     ip daddr $DNSMAP_RANGE \
       counter goto dnsmap \
       comment "process dnsmap addresses"

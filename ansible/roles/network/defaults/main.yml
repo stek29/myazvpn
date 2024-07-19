@@ -12,6 +12,8 @@ net_wg_peers: []
 net_nft_oifname: "eth0"
 net_nft_dnsmap_range: "10.222.0.0/20"
 net_nft_dns_redirect_to: "10.221.0.1"
+net_nft_ntp_redirect_enabled: false
+net_nft_ntp_redirect_to: "216.239.35.0" # google ntp
 
 net_bird_router_id: "{{ net_wg_address_range | ansible.utils.nthhost(1) }}"
 net_bird_ospf_txlen: "{{ net_wg_mtu - 40 }}"
