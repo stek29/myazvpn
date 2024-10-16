@@ -182,6 +182,7 @@ func (s *Server) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		log.Printf("inf: got response for %v %v: %v\n", qtype, qname, ret)
 	}
 
+	ret.Compress = true
 	w.WriteMsg(ret)
 }
 
